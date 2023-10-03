@@ -11,8 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var expenses []models.Expense
-
 func (app *application) getExpensesHandler(c *gin.Context) {
 
 	res, err := app.store.GetExpenses()
@@ -60,6 +58,17 @@ func (app *application) createExpensesHandler(c *gin.Context) {
 }
 
 func (app *application) getExpenseHandler(c *gin.Context) {
+	id := c.Param("id")
+
+	expense, err := app.store.GetExpenseById(id)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "could not find expense",
+		})
+	}
+
+	c.JSON(http.StatusAccepted, expense)
 
 }
 

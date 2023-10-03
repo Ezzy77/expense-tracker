@@ -9,11 +9,11 @@ import (
 )
 
 type Storage interface {
-	CreateExpense(*models.Expense) error
+	CreateExpense(exp *models.Expense) error
 	GetExpenses() ([]*models.Expense, error)
-	DeleteExpense(int) error
-	UpdateExpense(int) error
-	GetExpenseById(int) error
+	GetExpenseById(id string) (*models.Expense, error)
+	DeleteExpense(id string) error
+	UpdateExpense(id string) error
 }
 
 type PostgresStore struct {
@@ -101,13 +101,34 @@ func (s *PostgresStore) GetExpenses() ([]*models.Expense, error) {
 
 }
 
-func (s *PostgresStore) DeleteExpense(id int) error {
-	return nil
-}
-func (s *PostgresStore) UpdateExpense(id int) error {
-	return nil
+func (s *PostgresStore) GetExpenseById(id string) (*models.Expense, error) {
+	stmt := `SELECT * FROM expense WHERE id = $1`
+
+	rows, err := s.db.Query(stmt, id)
+	if err != nil {
+		return nil, err
+	}
+
+	expense := models.Expense{}
+
+	for rows.Next() {
+		if err := rows.Scan(
+			&expense.ID,
+			&expense.Item,
+			&expense.Price,
+			&expense.Store,
+			&expense.Date,
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	return &expense, nil
 }
 
-func (s *PostgresStore) GetExpenseById(id int) error {
+func (s *PostgresStore) DeleteExpense(id string) error {
+	return nil
+}
+func (s *PostgresStore) UpdateExpense(id string) error {
 	return nil
 }
