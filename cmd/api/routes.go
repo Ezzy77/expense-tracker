@@ -6,7 +6,6 @@ import (
 
 func (app *application) routes() *gin.Engine {
 
-	//route := httprouter.New()
 	route := gin.Default()
 
 	route.GET("/v1/api/healthcheck", app.healthcheckHandler)
