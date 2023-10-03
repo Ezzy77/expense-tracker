@@ -23,6 +23,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
+	store  Storage
 }
 
 func main() {
@@ -38,9 +39,18 @@ func main() {
 
 	//an instance of the application struct, containing the config struct
 	// and the logger
+	store, err := NewPostgresStore()
+	if err != nil {
+		fmt.Println("here -----", err)
+	}
+	err = store.init()
+	if err != nil {
+		fmt.Println(err)
+	}
 	app := &application{
 		config: cfg,
 		logger: logger,
+		store:  store,
 	}
 
 	server := &http.Server{
@@ -52,6 +62,6 @@ func main() {
 	}
 
 	logger.Printf("starting %s server on %s", cfg.env, server.Addr)
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	logger.Fatal(err)
 }
