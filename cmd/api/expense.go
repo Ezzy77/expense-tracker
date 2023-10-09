@@ -63,9 +63,10 @@ func (app *application) getExpenseHandler(c *gin.Context) {
 	expense, err := app.store.GetExpenseById(id)
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"error": "could not find expense",
 		})
+		return
 	}
 
 	c.JSON(http.StatusAccepted, expense)
@@ -77,5 +78,19 @@ func (app *application) updateExpenseHandler(c *gin.Context) {
 }
 
 func (app *application) deleteExpenseHandler(c *gin.Context) {
+	id := c.Param("id")
+
+	err := app.store.DeleteExpense(id)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "could not find expense",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "deleted successfuly",
+	})
 
 }

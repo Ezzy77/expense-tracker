@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/ezzy77/expense-tracker/models"
@@ -104,31 +105,46 @@ func (s *PostgresStore) GetExpenses() ([]*models.Expense, error) {
 func (s *PostgresStore) GetExpenseById(id string) (*models.Expense, error) {
 	stmt := `SELECT * FROM expense WHERE id = $1`
 
-	rows, err := s.db.Query(stmt, id)
-	if err != nil {
-		return nil, err
-	}
-
 	expense := models.Expense{}
 
-	for rows.Next() {
-		if err := rows.Scan(
-			&expense.ID,
-			&expense.Item,
-			&expense.Price,
-			&expense.Store,
-			&expense.Date,
-		); err != nil {
-			return nil, err
-		}
+	err := s.db.QueryRow(stmt, id).Scan(
+		&expense.ID,
+		&expense.Item,
+		&expense.Price,
+		&expense.Store,
+		&expense.Date,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	return &expense, nil
 }
 
 func (s *PostgresStore) DeleteExpense(id string) error {
+	stmt := `DELETE FROM expense WHERE id = $1`
+
+	result, err := s.db.Exec(stmt, id)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("record not found")
+	}
+
 	return nil
 }
+
 func (s *PostgresStore) UpdateExpense(id string) error {
+	// stmt := `UPDATE expense SET item=$1, price=$2, store=$3
+	// WHERE id = $4`
+
+	// s.db.QueryRow(stmt, )
 	return nil
 }
