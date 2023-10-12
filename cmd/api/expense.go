@@ -16,9 +16,13 @@ func (app *application) getExpensesHandler(c *gin.Context) {
 	res, err := app.store.GetExpenses()
 	if err != nil {
 		fmt.Println(err)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "not found",
+		})
+		return
 	}
 
-	c.JSON(202, res)
+	c.JSON(http.StatusAccepted, res)
 
 }
 
@@ -32,6 +36,7 @@ func (app *application) createExpensesHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "could not parse json",
 		})
+		return
 	}
 
 	expense.ID = uuid.New()
@@ -53,7 +58,7 @@ func (app *application) createExpensesHandler(c *gin.Context) {
 	}
 
 	//expenses = append(expenses, expense)
-	c.JSON(http.StatusAccepted, expense)
+	c.JSON(http.StatusCreated, expense)
 
 }
 
@@ -74,6 +79,30 @@ func (app *application) getExpenseHandler(c *gin.Context) {
 }
 
 func (app *application) updateExpenseHandler(c *gin.Context) {
+	id := c.Param("id")
+
+	expense := models.Expense{}
+
+	err := c.ShouldBindJSON(&expense)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "could not parse json",
+		})
+		return
+	}
+
+	res, err := app.store.UpdateExpense(id, &expense)
+	if err != nil {
+		fmt.Println(err)
+
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "could not update json",
+		})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, res)
 
 }
 

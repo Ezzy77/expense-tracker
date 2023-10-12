@@ -14,7 +14,7 @@ type Storage interface {
 	GetExpenses() ([]*models.Expense, error)
 	GetExpenseById(id string) (*models.Expense, error)
 	DeleteExpense(id string) error
-	UpdateExpense(id string) error
+	UpdateExpense(id string, exp *models.Expense) (*models.Expense, error)
 }
 
 type PostgresStore struct {
@@ -141,10 +141,33 @@ func (s *PostgresStore) DeleteExpense(id string) error {
 	return nil
 }
 
-func (s *PostgresStore) UpdateExpense(id string) error {
-	// stmt := `UPDATE expense SET item=$1, price=$2, store=$3
-	// WHERE id = $4`
+func (s *PostgresStore) UpdateExpense(id string, exp *models.Expense) (*models.Expense, error) {
+	stmt := `UPDATE expense SET item=$1, price=$2, store=$3
+	 WHERE id = $4`
 
-	// s.db.QueryRow(stmt, )
-	return nil
+	expense := models.Expense{
+		ID:    exp.ID,
+		Item:  exp.Item,
+		Price: exp.Price,
+		Store: exp.Store,
+		Date:  exp.Date,
+	}
+
+	updatedExp := models.Expense{}
+
+	row, err := s.db.Query(stmt, expense.Item, expense.Price, expense.Store, id)
+	if err != nil {
+		return nil, err
+	}
+
+	row.Scan(
+		&updatedExp.ID,
+		&updatedExp.Item,
+		&updatedExp.Price,
+		&updatedExp.Store,
+		&updatedExp.Date,
+	)
+	fmt.Println("=====> ", updatedExp)
+
+	return &updatedExp, nil
 }
