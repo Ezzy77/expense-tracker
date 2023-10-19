@@ -55,10 +55,13 @@ func (app *application) createExpensesHandler(c *gin.Context) {
 	err = app.store.CreateExpense(&expense)
 	if err != nil {
 		fmt.Print(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Error": "bad request",
+		})
+		return
 	}
 
-	//expenses = append(expenses, expense)
-	c.JSON(http.StatusCreated, expense)
+	c.JSON(http.StatusCreated, &expense)
 
 }
 

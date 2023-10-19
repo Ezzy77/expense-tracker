@@ -69,7 +69,9 @@ func (s *PostgresStore) CreateExpense(exp *models.Expense) error {
 		exp.Store,
 		exp.Date,
 	)
+
 	if err != nil {
+		fmt.Println("me now ", err)
 		return err
 	}
 
