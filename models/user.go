@@ -30,3 +30,16 @@ func NewUser(firstName, lastName, email, password string) *User {
 		Date:      time.Now().UTC(),
 	}
 }
+
+func (u *UserModel) Insert(firstName, lastName, email, password string) error {
+
+	return nil
+}
+
+func (u *UserModel) Authenticate(email, password string) (int, error) {
+	return 0, nil
+}
+
+func (u *UserModel) Exists(id int) (bool, error) {
+	return false, nil
+}

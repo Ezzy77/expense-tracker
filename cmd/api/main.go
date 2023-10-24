@@ -9,7 +9,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/ezzy77/expense-tracker/models"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 // app version
@@ -26,7 +28,9 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
-	store  Storage
+	//store    Storage
+	users    *models.UserModel
+	expenses *models.ExpenseModel
 }
 
 func main() {
@@ -53,18 +57,20 @@ func main() {
 
 	//an instance of the application struct, containing the config struct
 	// and the logger
-	store, err := NewPostgresStore(db)
-	if err != nil {
-		fmt.Println("here -----", err)
-	}
-	err = store.init()
-	if err != nil {
-		fmt.Println(err)
-	}
+	// store, err := NewPostgresStore(db)
+	// if err != nil {
+	// 	fmt.Println("here -----", err)
+	// }
+	// err = store.init()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 	app := &application{
 		config: cfg,
 		logger: logger,
-		store:  store,
+		//store:    store,
+		users:    &models.UserModel{DB: db},
+		expenses: &models.ExpenseModel{DB: db},
 	}
 
 	server := &http.Server{

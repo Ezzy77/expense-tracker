@@ -1,6 +1,9 @@
 package models
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"time"
 
 	_ "github.com/go-playground/validator/v10"
@@ -15,6 +18,10 @@ type Expense struct {
 	Date  time.Time `json:"date"`
 }
 
+type ExpenseModel struct {
+	DB *sql.DB
+}
+
 func NewExpense(item string, price float64, store string) *Expense {
 	return &Expense{
 		ID:    uuid.New(),
@@ -25,167 +32,121 @@ func NewExpense(item string, price float64, store string) *Expense {
 	}
 }
 
-// type ExpenseModel interface {
-// 	CreateExpense(exp *Expense) error
-// 	GetExpenses() ([]*Expense, error)
-// 	GetExpenseById(id string) (*Expense, error)
-// 	DeleteExpense(id string) error
-// 	UpdateExpense(id string, exp *Expense) (Expense, error)
-// }
+func (e *ExpenseModel) CreateExpense(exp *Expense) error {
 
-// type PostgresStore struct {
-// 	db *sql.DB
-// }
+	stmt := ` INSERT INTO expense
+	(id, item, price, store, date)
+	VALUES ($1, $2, $3, $4, $5)`
 
-// func NewPostgresStore() (*PostgresStore, error) {
+	_, err := e.DB.Query(
+		stmt,
+		exp.ID,
+		exp.Item,
+		exp.Price,
+		exp.Store,
+		exp.Date,
+	)
 
-// 	connStr := "user=postgres dbname=expense_tracker password=mysecretpassword sslmode=disable"
-// 	db, err := sql.Open("postgres", connStr)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return nil, err
-// 	}
+	if err != nil {
+		fmt.Println("me now ", err)
+		return err
+	}
 
-// 	if err := db.Ping(); err != nil {
-// 		fmt.Println(err)
-// 		return nil, err
-// 	}
+	return nil
+}
 
-// 	return &PostgresStore{
-// 		db: db,
-// 	}, nil
-// }
+func (e *ExpenseModel) GetExpenses() ([]*Expense, error) {
+	rows, err := e.DB.Query("SELECT * FROM expense")
+	if err != nil {
+		return nil, err
+	}
 
-// func (s *PostgresStore) init() error {
+	var expenses []*Expense
 
-// 	query := `create table if not exists expense(
-// 		id UUID primary key,
-// 		item TEXT NOT NULL,
-// 		price INTEGER NOT NULL,
-// 		store TEXT NOT NULL,
-// 		date TIMESTAMP
-// 	)`
+	for rows.Next() {
+		expense := Expense{}
+		if err := rows.Scan(
+			&expense.ID,
+			&expense.Item,
+			&expense.Price,
+			&expense.Store,
+			&expense.Date,
+		); err != nil {
+			return nil, err
+		}
+		expenses = append(expenses, &expense)
+	}
 
-// 	_, err := s.db.Exec(query)
-// 	return err
+	return expenses, nil
 
-// }
+}
 
-// func (s *PostgresStore) CreateExpense(exp *Expense) error {
+func (e *ExpenseModel) GetExpenseById(id string) (*Expense, error) {
+	stmt := `SELECT * FROM expense WHERE id = $1`
 
-// 	stmt := ` INSERT INTO expense
-// 	(id, item, price, store, date)
-// 	VALUES ($1, $2, $3, $4, $5)`
+	expense := Expense{}
 
-// 	_, err := s.db.Query(
-// 		stmt,
-// 		exp.ID,
-// 		exp.Item,
-// 		exp.Price,
-// 		exp.Store,
-// 		exp.Date,
-// 	)
+	err := e.DB.QueryRow(stmt, id).Scan(
+		&expense.ID,
+		&expense.Item,
+		&expense.Price,
+		&expense.Store,
+		&expense.Date,
+	)
+	if err != nil {
+		return nil, err
+	}
 
-// 	if err != nil {
-// 		fmt.Println("me now ", err)
-// 		return err
-// 	}
+	return &expense, nil
+}
 
-// 	return nil
-// }
+func (e *ExpenseModel) DeleteExpense(id string) error {
+	stmt := `DELETE FROM expense WHERE id = $1`
 
-// func (s *PostgresStore) GetExpenses() ([]*Expense, error) {
-// 	rows, err := s.db.Query("SELECT * FROM expense")
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	result, err := e.DB.Exec(stmt, id)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
 
-// 	var expenses []*Expense
+	if err != nil {
+		return err
+	}
 
-// 	for rows.Next() {
-// 		expense := Expense{}
-// 		if err := rows.Scan(
-// 			&expense.ID,
-// 			&expense.Item,
-// 			&expense.Price,
-// 			&expense.Store,
-// 			&expense.Date,
-// 		); err != nil {
-// 			return nil, err
-// 		}
-// 		expenses = append(expenses, &expense)
-// 	}
+	if rowsAffected == 0 {
+		return errors.New("record not found")
+	}
 
-// 	return expenses, nil
+	return nil
+}
 
-// }
+func (e *ExpenseModel) UpdateExpense(id string, exp *Expense) (*Expense, error) {
+	stmt := `UPDATE expense SET item=$1, price=$2, store=$3
+	 WHERE id = $4`
 
-// func (s *PostgresStore) GetExpenseById(id string) (*Expense, error) {
-// 	stmt := `SELECT * FROM expense WHERE id = $1`
+	expense := Expense{
+		ID:    exp.ID,
+		Item:  exp.Item,
+		Price: exp.Price,
+		Store: exp.Store,
+		Date:  exp.Date,
+	}
 
-// 	expense := Expense{}
+	updatedExp := Expense{}
 
-// 	err := s.db.QueryRow(stmt, id).Scan(
-// 		&expense.ID,
-// 		&expense.Item,
-// 		&expense.Price,
-// 		&expense.Store,
-// 		&expense.Date,
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	row, err := e.DB.Query(stmt, expense.Item, expense.Price, expense.Store, id)
+	if err != nil {
+		return nil, err
+	}
 
-// 	return &expense, nil
-// }
+	row.Scan(
+		&updatedExp.ID,
+		&updatedExp.Item,
+		&updatedExp.Price,
+		&updatedExp.Store,
+		&updatedExp.Date,
+	)
+	fmt.Println("=====> ", updatedExp)
 
-// func (s *PostgresStore) DeleteExpense(id string) error {
-// 	stmt := `DELETE FROM expense WHERE id = $1`
-
-// 	result, err := s.db.Exec(stmt, id)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	rowsAffected, err := result.RowsAffected()
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if rowsAffected == 0 {
-// 		return errors.New("record not found")
-// 	}
-
-// 	return nil
-// }
-
-// func (s *PostgresStore) UpdateExpense(id string, exp *Expense) (*Expense, error) {
-// 	stmt := `UPDATE expense SET item=$1, price=$2, store=$3
-// 	 WHERE id = $4`
-
-// 	expense := Expense{
-// 		ID:    exp.ID,
-// 		Item:  exp.Item,
-// 		Price: exp.Price,
-// 		Store: exp.Store,
-// 		Date:  exp.Date,
-// 	}
-
-// 	updatedExp := Expense{}
-
-// 	row, err := s.db.Query(stmt, expense.Item, expense.Price, expense.Store, id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	row.Scan(
-// 		&updatedExp.ID,
-// 		&updatedExp.Item,
-// 		&updatedExp.Price,
-// 		&updatedExp.Store,
-// 		&updatedExp.Date,
-// 	)
-// 	fmt.Println("=====> ", updatedExp)
-
-// 	return &updatedExp, nil
-// }
+	return &updatedExp, nil
+}
