@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,9 +16,9 @@ type User struct {
 	Date      time.Time
 }
 
-// type UserModel struct {
-// 	DB *sql.DB
-// }
+type UserModel struct {
+	DB *sql.DB
+}
 
 func NewUser(firstName, lastName, email, password string) *User {
 	return &User{
