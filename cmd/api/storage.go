@@ -21,20 +21,7 @@ type PostgresStore struct {
 	db *sql.DB
 }
 
-func NewPostgresStore() (*PostgresStore, error) {
-
-	connStr := "user=postgres dbname=expense_tracker password=mysecretpassword sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
+func NewPostgresStore(db *sql.DB) (*PostgresStore, error) {
 	return &PostgresStore{
 		db: db,
 	}, nil
@@ -42,7 +29,7 @@ func NewPostgresStore() (*PostgresStore, error) {
 
 func (s *PostgresStore) init() error {
 
-	query := `create table if not exists expense(
+	query1 := `create table if not exists expense(
 		id UUID primary key,
 		item TEXT NOT NULL,
 		price INTEGER NOT NULL,
@@ -50,9 +37,23 @@ func (s *PostgresStore) init() error {
 		date TIMESTAMP
 	)`
 
-	_, err := s.db.Exec(query)
-	return err
+	_, err := s.db.Exec(query1)
+	if err != nil {
+		return err
 
+	}
+
+	query2 := `CREATE TABLE IF NOT EXISTS client(
+		id UUID primary key,
+		first_name TEXT NOT NULL,
+		last_name TEXT NOT NULL,
+		email TEXT NOT NULL,
+		hashed_password TEXT NOT NULL,
+		date TIMESTAMP
+	)`
+
+	_, err2 := s.db.Exec(query2)
+	return err2
 }
 
 func (s *PostgresStore) CreateExpense(exp *models.Expense) error {

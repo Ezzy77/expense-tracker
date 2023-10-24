@@ -1,12 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // app version
@@ -27,6 +30,17 @@ type application struct {
 }
 
 func main() {
+	// load env variables
+	loadEnvVariables()
+
+	//access the environment variables
+	connStr := os.Getenv("CONN_STRING")
+	// init databse
+	db, err := DatabaseInit(connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	var cfg config
 
@@ -39,7 +53,7 @@ func main() {
 
 	//an instance of the application struct, containing the config struct
 	// and the logger
-	store, err := NewPostgresStore()
+	store, err := NewPostgresStore(db)
 	if err != nil {
 		fmt.Println("here -----", err)
 	}
@@ -64,4 +78,27 @@ func main() {
 	logger.Printf("starting %s server on %s", cfg.env, server.Addr)
 	err = server.ListenAndServe()
 	logger.Fatal(err)
+}
+
+func loadEnvVariables() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
+
+func DatabaseInit(connStr string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return db, nil
+
 }
