@@ -40,7 +40,7 @@ func main() {
 	//access the environment variables
 	connStr := os.Getenv("CONN_STRING")
 	// init databse
-	db, err := DatabaseInit(connStr)
+	db, err := OpenDatabase(connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func loadEnvVariables() {
 	}
 }
 
-func DatabaseInit(connStr string) (*sql.DB, error) {
+func OpenDatabase(connStr string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		fmt.Println(err)
