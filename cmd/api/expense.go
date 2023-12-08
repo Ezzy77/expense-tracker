@@ -13,7 +13,7 @@ import (
 
 func (app *application) getExpensesHandler(c *gin.Context) {
 
-	res, err := app.store.GetExpenses()
+	res, err := app.expenses.GetExpenses()
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusNotFound, gin.H{
@@ -52,7 +52,7 @@ func (app *application) createExpensesHandler(c *gin.Context) {
 		return
 	}
 
-	err = app.store.CreateExpense(&expense)
+	err = app.expenses.CreateExpense(&expense)
 	if err != nil {
 		fmt.Print(err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -68,7 +68,7 @@ func (app *application) createExpensesHandler(c *gin.Context) {
 func (app *application) getExpenseHandler(c *gin.Context) {
 	id := c.Param("id")
 
-	expense, err := app.store.GetExpenseById(id)
+	expense, err := app.expenses.GetExpenseById(id)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusNotFound, gin.H{
@@ -95,7 +95,7 @@ func (app *application) updateExpenseHandler(c *gin.Context) {
 		return
 	}
 
-	res, err := app.store.UpdateExpense(id, &expense)
+	res, err := app.expenses.UpdateExpense(id, &expense)
 	if err != nil {
 		fmt.Println(err)
 
@@ -112,7 +112,7 @@ func (app *application) updateExpenseHandler(c *gin.Context) {
 func (app *application) deleteExpenseHandler(c *gin.Context) {
 	id := c.Param("id")
 
-	err := app.store.DeleteExpense(id)
+	err := app.expenses.DeleteExpense(id)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusNotFound, gin.H{

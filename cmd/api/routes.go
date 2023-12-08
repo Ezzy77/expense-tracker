@@ -17,6 +17,7 @@ func (app *application) routes() *gin.Engine {
 	route.PATCH("/v1/api/expenses/:id", app.updateExpenseHandler)
 
 	//user routes
+	route.GET("/v1/api/users", app.userListHandler)
 	route.POST("/v1/api/user/signup", app.userSignUpHandler)
 	route.POST("/v1/api/user/login", app.userLoginHandler)
 	route.POST("/v1/api/user/logout", app.userLogoutHandler)

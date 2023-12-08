@@ -9,11 +9,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/ezzy77/expense-tracker/models"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 // app version
-const version = "1.0.0"
+//const version = "1.0.0"
 
 // holds application config
 type config struct {
@@ -26,7 +28,9 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
-	store  Storage
+	//store    Storage
+	users    *models.UserModel
+	expenses *models.ExpenseModel
 }
 
 func main() {
@@ -36,7 +40,7 @@ func main() {
 	//access the environment variables
 	connStr := os.Getenv("CONN_STRING")
 	// init databse
-	db, err := DatabaseInit(connStr)
+	db, err := OpenDatabase(connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,20 +55,12 @@ func main() {
 	// init new logger that writtes messages to the standard out stream
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	//an instance of the application struct, containing the config struct
-	// and the logger
-	store, err := NewPostgresStore(db)
-	if err != nil {
-		fmt.Println("here -----", err)
-	}
-	err = store.init()
-	if err != nil {
-		fmt.Println(err)
-	}
 	app := &application{
 		config: cfg,
 		logger: logger,
-		store:  store,
+		//store:    store,
+		users:    &models.UserModel{DB: db},
+		expenses: &models.ExpenseModel{DB: db},
 	}
 
 	server := &http.Server{
@@ -83,11 +79,11 @@ func main() {
 func loadEnvVariables() {
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal(err)
 	}
 }
 
-func DatabaseInit(connStr string) (*sql.DB, error) {
+func OpenDatabase(connStr string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		fmt.Println(err)
