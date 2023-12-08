@@ -40,8 +40,26 @@ func (app *application) userSignUpHandler(c *gin.Context) {
 }
 
 func (app *application) userLoginHandler(c *gin.Context) {
+
+	user := models.User{}
+
+	err := c.ShouldBindJSON(&user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "error with data",
+		})
+	}
+
+	sessKey, err := app.users.Authenticate(user.Email, user.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "user loged in",
+		"session key": sessKey,
 	})
 }
 

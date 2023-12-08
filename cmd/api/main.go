@@ -77,7 +77,8 @@ func main() {
 }
 
 func loadEnvVariables() {
-	err := godotenv.Load(".env")
+	err := godotenv.Load("/Users/Elisio/expense-tracker/.env")
+
 	if err != nil {
 		log.Fatal(err)
 	}

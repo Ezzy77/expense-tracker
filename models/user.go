@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -59,13 +60,26 @@ func (u *UserModel) Insert(user User) error {
 	return nil
 }
 
-func (u *UserModel) Authenticate(email, password string) (int, error) {
-	// var id uuid.UUID
-	// var hashedPassword []byte
+func (u *UserModel) Authenticate(email, password string) (uuid.UUID, error) {
+	var id uuid.UUID
+	var hashedPassword []byte
 
-	// stmt := `SELECT id, first_name, last_name, hashed_password  FROM client WHERE email = $1`
+	stmt := `SELECT id, hashed_password  FROM client WHERE email = $1`
 
-	return 0, nil
+	err := u.DB.QueryRow(stmt, email).Scan(
+		&id,
+		&hashedPassword,
+	)
+	if err != nil {
+		return uuid.Nil, errors.New("invalid email or password")
+	}
+
+	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return id, nil
 }
 
 func (u *UserModel) Exists(id int) (bool, error) {

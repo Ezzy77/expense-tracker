@@ -18,9 +18,9 @@ func (app *application) routes() *gin.Engine {
 
 	//user routes
 	route.GET("/v1/api/users", app.userListHandler)
-	route.POST("/v1/api/user/signup", app.userSignUpHandler)
-	route.POST("/v1/api/user/login", app.userLoginHandler)
-	route.POST("/v1/api/user/logout", app.userLogoutHandler)
+	route.POST("/v1/api/users/signup", app.userSignUpHandler)
+	route.POST("/v1/api/users/login", app.userLoginHandler)
+	route.POST("/v1/api/users/logout", app.userLogoutHandler)
 
 	return route
 }
