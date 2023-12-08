@@ -43,7 +43,7 @@ func (u *UserModel) Insert(user User) error {
 	(id, first_name, last_name, email, hashed_password, date)
 	VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err = u.DB.Query(stmt,
+	_, err = u.DB.Exec(stmt,
 		user.ID,
 		user.FirstName,
 		user.LastName,
@@ -60,6 +60,11 @@ func (u *UserModel) Insert(user User) error {
 }
 
 func (u *UserModel) Authenticate(email, password string) (int, error) {
+	// var id uuid.UUID
+	// var hashedPassword []byte
+
+	// stmt := `SELECT id, first_name, last_name, hashed_password  FROM client WHERE email = $1`
+
 	return 0, nil
 }
 

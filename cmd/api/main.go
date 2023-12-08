@@ -15,7 +15,7 @@ import (
 )
 
 // app version
-const version = "1.0.0"
+//const version = "1.0.0"
 
 // holds application config
 type config struct {
@@ -55,16 +55,6 @@ func main() {
 	// init new logger that writtes messages to the standard out stream
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	//an instance of the application struct, containing the config struct
-	// and the logger
-	// store, err := NewPostgresStore(db)
-	// if err != nil {
-	// 	fmt.Println("here -----", err)
-	// }
-	// err = store.init()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
 	app := &application{
 		config: cfg,
 		logger: logger,
