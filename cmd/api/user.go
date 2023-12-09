@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ezzy77/expense-tracker/internal/validator"
 	"github.com/ezzy77/expense-tracker/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -18,6 +19,22 @@ func (app *application) userSignUpHandler(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err,
+		})
+		return
+	}
+
+	result := validator.Matches(user.Email, validator.EmailRX)
+	if !result {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "must be valid email",
+		})
+		return
+	}
+
+	valid := validator.MinChars(user.Password, 8)
+	if !valid {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "password should be min 8 characters",
 		})
 		return
 	}
